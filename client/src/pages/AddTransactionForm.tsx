@@ -182,12 +182,58 @@ function AddTransactionForm() {
                           className="select select-bordered"
                           required
                         >
-                          <option value="">カテゴリを選択 ({categories.length}件)</option>
-                          {categories.map(category => (
-                            <option key={category.id} value={category.id}>
-                              {category.name}
-                            </option>
-                          ))}
+                          <option value="">カテゴリを選択</option>
+                          {categories
+                            .filter(category => category.type === 'expense')
+                            .map(category => (
+                              <option key={category.id} value={category.id}>
+                                <div className="flex items-center">
+                                  <div
+                                    className="w-3 h-3 rounded mr-2"
+                                    style={{ backgroundColor: category.color }}
+                                  ></div>
+                                  {category.name}
+                                </div>
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                    </div>
+                  )}
+
+                  {/* カテゴリ（収入の場合のみ表示） */}
+                  {formData.type === 'income' && (
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">カテゴリ</span>
+                      </label>
+                      {loading ? (
+                        <div className="text-center py-2">
+                          <span className="loading loading-spinner loading-sm"></span>
+                          <span className="ml-2">カテゴリを読み込み中...</span>
+                        </div>
+                      ) : (
+                        <select
+                          name="category_id"
+                          value={formData.category_id}
+                          onChange={handleInputChange}
+                          className="select select-bordered"
+                          required
+                        >
+                          <option value="">カテゴリを選択</option>
+                          {categories
+                            .filter(category => category.type === 'income')
+                            .map(category => (
+                              <option key={category.id} value={category.id}>
+                                <div className="flex items-center">
+                                  <div
+                                    className="w-3 h-3 rounded mr-2"
+                                    style={{ backgroundColor: category.color }}
+                                  ></div>
+                                  {category.name}
+                                </div>
+                              </option>
+                            ))}
                         </select>
                       )}
                     </div>

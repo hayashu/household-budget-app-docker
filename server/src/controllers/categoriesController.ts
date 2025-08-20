@@ -35,13 +35,21 @@ const getCategoryById = async (req: Request, res: Response):Promise<void> => {
 }
 
 const createCategory = async (req: Request, res: Response):Promise<void> => {
-  const {name} = req.body;
+  const {name, type, color} = req.body;
   if (!name){
     res.status(400).json({error: 'Category name is required'});
     return;
   }
+  if (!type || !['income', 'expense'].includes(type)){
+    res.status(400).json({error: 'Category type must be income or expense'});
+    return;
+  }
+  if (!color){
+    res.status(400).json({error: 'Category color is required'});
+    return;
+  }
   try {
-    const createdCategory = await createCategoryModel(name);
+    const createdCategory = await createCategoryModel(name, type, color);
     res.status(201).json(createdCategory);
     return;
   } catch (error) {
@@ -53,7 +61,7 @@ const createCategory = async (req: Request, res: Response):Promise<void> => {
 
 const updateCategory = async (req: Request, res: Response):Promise<void> => {
   const {id} = req.params;
-  const {name} = req.body;
+  const {name, type, color} = req.body;
   if (!id || isNaN(parseInt(id, 10))) {
     res.status(400).json({error: 'Invalid category ID'});
     return;
@@ -68,8 +76,16 @@ const updateCategory = async (req: Request, res: Response):Promise<void> => {
     res.status(400).json({error: 'Category name is required'});
     return;
   }
+  if (!type || !['income', 'expense'].includes(type)){
+    res.status(400).json({error: 'Category type must be income or expense'});
+    return;
+  }
+  if (!color){
+    res.status(400).json({error: 'Category color is required'});
+    return;
+  }
   try {
-    const updatedCategory = await updateCategoryModel(parseInt(id, 10), name);
+    const updatedCategory = await updateCategoryModel(parseInt(id, 10), name, type, color);
     if (!updatedCategory) {
       res.status(404).json({error: 'Category not found'});
       return;

@@ -2,6 +2,8 @@
 CREATE TABLE categories (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(50) NOT NULL,
+    type        VARCHAR(10) NOT NULL,  -- 'income' or 'expense'
+    color       VARCHAR(7) NOT NULL,   -- hex color code
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

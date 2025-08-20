@@ -3,6 +3,8 @@ export type TransactionType = 'income' | 'expense';
 export interface Category {
   id: number;
   name: string;
+  type: TransactionType;
+  color: string;
   created_at?: string;
 }
 
@@ -28,4 +30,6 @@ export interface CreateTransactionRequest {
 
 export interface CreateCategoryRequest {
   name: string;
+  type: TransactionType;
+  color: string;
 }

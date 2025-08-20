@@ -69,17 +69,17 @@ React + TypeScript + Node.js + PostgreSQL で構築されたモダンな家計�
 
 ### 1. リポジトリのクローン
 ```bash
-git clone <repository-url>
+git clone https://github.com/hayashu/household-budget-app-docker.git
 cd household-budget-app-docker
 ```
 
-### 2. 環境変数の設定
+<!-- ### 2. 環境変数の設定
 ```bash
 cp env.example .env
 # .envファイルを編集して必要な設定を行ってください
-```
+``` -->
 
-### 3. Dockerでの起動
+### 2. Dockerでの起動
 
 #### 開発環境
 ```bash

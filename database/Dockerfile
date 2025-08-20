@@ -5,8 +5,9 @@ ENV POSTGRES_DB=household_budget
 ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=password
 
-# 初期化スクリプトをコピー
+# 初期化スクリプトとシードファイルをコピー
 COPY migrations/ /docker-entrypoint-initdb.d/
+COPY seeds/ /docker-entrypoint-initdb.d/
 
 # ポートを公開
 EXPOSE 5432

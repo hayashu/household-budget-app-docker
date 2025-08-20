@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { categoriesApi } from '../services/api';
-import type { Category } from '../types/api';
+import type { Category, TransactionType } from '../types/api';
 
 
 function CategoryManagement() {
@@ -29,20 +29,32 @@ function CategoryManagement() {
 
   console.log(categories);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryType, setNewCategoryType] = useState<TransactionType>('expense');
+  const [newCategoryColor, setNewCategoryColor] = useState('#EF4444');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [editingType, setEditingType] = useState<TransactionType>('expense');
+  const [editingColor, setEditingColor] = useState('#EF4444');
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newCategoryName.trim()) {
       const newCategory: Category = {
         id: Math.max(...categories.map(c => c.id)) + 1,
-        name: newCategoryName.trim()
+        name: newCategoryName.trim(),
+        type: newCategoryType,
+        color: newCategoryColor
       };
       setCategories([...categories, newCategory]);
       setNewCategoryName('');
+      setNewCategoryType('expense');
+      setNewCategoryColor('#EF4444');
       try {
-        await categoriesApi.createCategory(newCategory);
+        await categoriesApi.createCategory({
+          name: newCategoryName.trim(),
+          type: newCategoryType,
+          color: newCategoryColor
+        });
       } catch (error) {
         console.error('Error creating category:', error);
         setError('カテゴリの追加に失敗しました');
@@ -54,17 +66,26 @@ function CategoryManagement() {
   const handleEditStart = (category: Category) => {
     setEditingId(category.id);
     setEditingName(category.name);
+    setEditingType(category.type);
+    setEditingColor(category.color);
   };
 
   const handleEditSave = async (id: number) => {
     if (editingName.trim()) {
       setCategories(categories.map(cat => 
-        cat.id === id ? { ...cat, name: editingName.trim() } : cat
+        cat.id === id ? { ...cat, name: editingName.trim(), type: editingType, color: editingColor } : cat
       ));
       setEditingId(null);
       setEditingName('');
+      setEditingType('expense');
+      setEditingColor('#EF4444');
       try {
-        await categoriesApi.updateCategory(id, {id, name: editingName.trim()});
+        await categoriesApi.updateCategory(id, {
+          id, 
+          name: editingName.trim(),
+          type: editingType,
+          color: editingColor
+        });
       } catch (error) {
         console.log('Error updating category:', error);
         setError('カテゴリの更新に失敗しました');
@@ -76,6 +97,8 @@ function CategoryManagement() {
   const handleEditCancel = () => {
     setEditingId(null);
     setEditingName('');
+    setEditingType('expense');
+    setEditingColor('#EF4444');
   };
 
   const handleDelete = async (id: number) => {
@@ -98,113 +121,114 @@ function CategoryManagement() {
           <div className="max-w-4xl mx-auto p-6">
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <h2 className="card-title text-2xl mb-6">カテゴリ管理</h2>
+                <h2 className="card-title">カテゴリー管理</h2>
                 
-                {/* 新規カテゴリ追加フォーム */}
-                <div className="card bg-base-200 mb-6">
-                  <div className="card-body">
-                    <h3 className="card-title text-lg mb-4">新規カテゴリ追加</h3>
-                    <form onSubmit={handleAddCategory} className="flex gap-4">
-                      <input
-                        type="text"
-                        placeholder="カテゴリ名を入力"
-                        className="input input-bordered flex-1"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        required
-                      />
-                      <button type="submit" className="btn btn-primary">
-                        追加
-                      </button>
-                    </form>
+                {/* 新規カテゴリー追加フォーム */}
+                <form onSubmit={handleAddCategory} className="space-y-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input
+                      type="text"
+                      placeholder="カテゴリー名"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      className="input input-bordered"
+                      required
+                    />
+                    <select
+                      value={newCategoryType}
+                      onChange={(e) => setNewCategoryType(e.target.value as TransactionType)}
+                      className="select select-bordered"
+                    >
+                      <option value="expense">支出</option>
+                      <option value="income">収入</option>
+                    </select>
+                    <input
+                      type="color"
+                      value={newCategoryColor}
+                      onChange={(e) => setNewCategoryColor(e.target.value)}
+                      className="input input-bordered h-12"
+                    />
+                    <button type="submit" className="btn btn-primary">
+                      追加
+                    </button>
                   </div>
-                </div>
+                </form>
 
-                {/* カテゴリ一覧 */}
+                {/* カテゴリー一覧 */}
                 {loading ? (
-                  <div className="text-center py-8">
+                  <div className="text-center">
                     <span className="loading loading-spinner loading-lg"></span>
-                    <p className="mt-2">カテゴリを読み込み中...</p>
+                    <p className="mt-2">カテゴリーを読み込み中...</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="table table-zebra">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>カテゴリ名</th>
-                          <th>操作</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {categories.map(category => (
-                          <tr key={category.id}>
-                            <td>{category.id}</td>
-                            <td>
-                              {editingId === category.id ? (
-                                <input
-                                  type="text"
-                                  className="input input-bordered input-sm"
-                                  value={editingName}
-                                  onChange={(e) => setEditingName(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleEditSave(category.id);
-                                    } else if (e.key === 'Escape') {
-                                      handleEditCancel();
-                                    }
-                                  }}
-                                  autoFocus
-                                />
-                              ) : (
-                                category.name
-                              )}
-                            </td>
-                            <td>
-                              <div className="flex gap-2">
-                                {editingId === category.id ? (
-                                  <>
-                                    <button 
-                                      className="btn btn-sm btn-success"
-                                      onClick={() => handleEditSave(category.id)}
-                                    >
-                                      保存
-                                    </button>
-                                    <button 
-                                      className="btn btn-sm btn-outline"
-                                      onClick={handleEditCancel}
-                                    >
-                                      キャンセル
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <button 
-                                      className="btn btn-sm btn-outline"
-                                      onClick={() => handleEditStart(category)}
-                                    >
-                                      編集
-                                    </button>
-                                    <button 
-                                      className="btn btn-sm btn-error"
-                                      onClick={() => handleDelete(category.id)}
-                                    >
-                                      削除
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {categories.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    カテゴリがありません
+                  <div className="space-y-2">
+                    {categories.map((category) => (
+                      <div key={category.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        {editingId === category.id ? (
+                          <div className="flex items-center space-x-2 flex-1">
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="input input-bordered input-sm"
+                            />
+                            <select
+                              value={editingType}
+                              onChange={(e) => setEditingType(e.target.value as TransactionType)}
+                              className="select select-bordered select-sm"
+                            >
+                              <option value="expense">支出</option>
+                              <option value="income">収入</option>
+                            </select>
+                            <input
+                              type="color"
+                              value={editingColor}
+                              onChange={(e) => setEditingColor(e.target.value)}
+                              className="input input-bordered input-sm h-8"
+                            />
+                            <button
+                              onClick={() => handleEditSave(category.id)}
+                              className="btn btn-success btn-sm"
+                            >
+                              保存
+                            </button>
+                            <button
+                              onClick={handleEditCancel}
+                              className="btn btn-ghost btn-sm"
+                            >
+                              キャンセル
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center space-x-3">
+                              <div
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: category.color }}
+                              ></div>
+                              <span className="badge badge-outline">
+                                {category.type === 'income' ? '収入' : '支出'}
+                              </span>
+                              <span className="font-medium">{category.name}</span>
+                            </div>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleEditStart(category)}
+                                className="btn btn-ghost btn-sm"
+                              >
+                                編集
+                              </button>
+                              <button
+                                onClick={() => handleDelete(category.id)}
+                                className="btn btn-error btn-sm"
+                              >
+                                削除
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
