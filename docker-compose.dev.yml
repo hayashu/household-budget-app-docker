@@ -1,0 +1,67 @@
+services:
+  # PostgreSQLデータベース
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: household-budget-app-docker-database
+    environment:
+      POSTGRES_DB: household_budget
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - app-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 開発環境用サーバー
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: household-budget-server-dev
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:password@database:5432/household_budget
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network-dev
+    restart: unless-stopped
+
+  # 開発環境用クライアント
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: household-budget-client-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - app-network-dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  app-network-dev:
+    driver: bridge

@@ -1,0 +1,62 @@
+services:
+  # PostgreSQLデータベース
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: household-budget-db
+    environment:
+      POSTGRES_DB: household_budget
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.jsサーバー
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: household-budget-server
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password@database:5432/household_budget
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Reactクライアント
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: household-budget-client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
