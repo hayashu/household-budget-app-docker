@@ -105,7 +105,7 @@ docker compose up --build -d
 docker compose down
 ```
 
-### 4. アクセス
+### 3. アクセス
 - **フロントエンド**: http://localhost:5173 (開発) / http://localhost:80 (本番)
 - **バックエンドAPI**: http://localhost:8080
 - **データベース**: localhost:5432
